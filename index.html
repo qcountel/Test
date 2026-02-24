@@ -183,7 +183,79 @@
     color: var(--purple-glow);
   }
 
-  .scroll-hint {
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fade-up 0.8s ease 0.3s both;
+  }
+
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.85rem 2rem;
+    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-bright) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 30px rgba(124,58,237,0.4);
+  }
+
+  .btn-download::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--purple-bright) 0%, var(--purple-ultra) 100%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 50px rgba(168,85,247,0.6);
+  }
+
+  .btn-download:hover::before { opacity: 1; }
+
+  .btn-download span { position: relative; z-index: 1; }
+
+  .btn-download svg { position: relative; z-index: 1; flex-shrink: 0; }
+
+  .btn-source {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 0.85rem 2rem;
+    background: transparent;
+    color: var(--purple-bright);
+    border: 1px solid rgba(168,85,247,0.4);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  }
+
+  .btn-source:hover {
+    border-color: var(--purple-bright);
+    background: rgba(168,85,247,0.08);
+    transform: translateY(-2px);
+  }
     position: absolute;
     bottom: 2.5rem;
     left: 50%;
@@ -640,10 +712,18 @@
     <span class="tag">Память процесса</span>
   </div>
 
-  <div class="scroll-hint">
-    <div class="scroll-line"></div>
-    Скролл
+  <div class="hero-actions">
+    <a class="btn-download" href="https://t.me/zovutil" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>Скачать</span>
+    </a>
   </div>
+
+
 </div>
 
 <!-- STATS -->
