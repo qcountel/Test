@@ -3,348 +3,478 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>zutil — Minecraft Utility</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<title>ZUTIL — Minecraft Utility</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;0,900;1,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --void: #04020a;
-    --deep: #0a0515;
-    --surface: #110c1e;
-    --border: #2a1a4a;
-    --purple-dark: #3a0d6e;
-    --purple: #7c3aed;
-    --purple-bright: #a855f7;
-    --purple-glow: #c084fc;
-    --purple-ultra: #e879f9;
-    --text: #e2d9f3;
-    --muted: #7c6fa0;
-    --accent: #f0abfc;
+    --bg:      #060408;
+    --surface: #0d0910;
+    --deep:    #100d18;
+    --border:  rgba(130, 80, 220, 0.18);
+    --border2: rgba(130, 80, 220, 0.10);
+    --p1: #8b5cf6;
+    --p2: #a78bfa;
+    --p3: #c4b5fd;
+    --p4: #ede9fe;
+    --muted: rgba(180,160,220,0.45);
+    --text: rgba(230,220,255,0.9);
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
 
   body {
-    background: var(--void);
+    background: var(--bg);
     color: var(--text);
     font-family: 'Space Mono', monospace;
     overflow-x: hidden;
     min-height: 100vh;
   }
 
-  /* ---- NOISE OVERLAY ---- */
+  /* ---- CANVAS ---- */
+  #canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ---- NOISE ---- */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
     pointer-events: none;
-    z-index: 0;
-    opacity: 0.4;
+    z-index: 1;
+    opacity: 0.5;
+  }
+
+  /* ---- NAVBAR ---- */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 44px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(6,4,8,0.7);
+    backdrop-filter: blur(14px);
+  }
+
+  .nav-logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 0.18em;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--p2);
+    filter: drop-shadow(0 0 12px rgba(139,92,246,0.4));
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 34px;
+    list-style: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .nav-links a:hover, .nav-links a.active { color: var(--p3); }
+
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-nav {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 8px 18px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--p2);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .btn-nav:hover {
+    border-color: var(--p1);
+    background: rgba(139,92,246,0.1);
+    color: var(--p3);
+  }
+
+  .btn-nav-filled {
+    background: rgba(139,92,246,0.2);
+    border-color: var(--p1);
+    color: var(--p3);
+  }
+
+  .btn-nav-filled:hover {
+    background: rgba(139,92,246,0.35);
+    box-shadow: 0 0 24px rgba(139,92,246,0.3);
+  }
+
+  /* ---- SIDE LABELS ---- */
+  .side-label {
+    position: fixed;
+    z-index: 50;
+    writing-mode: vertical-rl;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(139,92,246,0.3);
+    top: 50%;
+    pointer-events: none;
+  }
+
+  .side-left {
+    left: 20px;
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  .side-ver {
+    bottom: 28px;
+    left: 20px;
+    top: auto;
+    transform: rotate(180deg);
+  }
+
+  /* ---- SCROLL DOTS ---- */
+  .scroll-dots {
+    position: fixed;
+    right: 22px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: rgba(139,92,246,0.2);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+
+  .dot.active {
+    background: var(--p2);
+    transform: scale(1.5);
+    box-shadow: 0 0 8px rgba(139,92,246,0.6);
   }
 
   /* ---- HERO ---- */
-  .hero {
+  #hero {
     position: relative;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    text-align: center;
-    padding: 4rem 2rem;
+    padding: 100px 80px 80px;
     overflow: hidden;
+    z-index: 10;
   }
 
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(124,58,237,0.18) 0%, transparent 70%),
-      radial-gradient(ellipse 50% 40% at 20% 80%, rgba(168,85,247,0.1) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 30% at 80% 20%, rgba(232,121,249,0.08) 0%, transparent 60%),
-      var(--void);
-    z-index: -1;
-  }
-
-  /* Animated grid */
-  .grid-bg {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px);
-    background-size: 60px 60px;
-    animation: grid-drift 20s linear infinite;
-    z-index: -1;
-  }
-
-  @keyframes grid-drift {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(60px); }
-  }
-
-  /* Corner glows */
-  .glow-orb {
+  .hero-glow {
     position: absolute;
     border-radius: 50%;
-    filter: blur(80px);
+    filter: blur(100px);
     pointer-events: none;
-    animation: orb-pulse 6s ease-in-out infinite;
+    animation: orb-float 8s ease-in-out infinite;
   }
-  .glow-orb-1 {
-    width: 400px; height: 400px;
-    background: rgba(124,58,237,0.15);
-    top: -100px; left: -100px;
+  .hero-glow-1 {
+    width: 500px; height: 400px;
+    background: rgba(109,40,217,0.12);
+    top: 0; left: -80px;
     animation-delay: 0s;
   }
-  .glow-orb-2 {
+  .hero-glow-2 {
     width: 300px; height: 300px;
-    background: rgba(232,121,249,0.1);
-    bottom: -80px; right: -80px;
-    animation-delay: 3s;
+    background: rgba(167,139,250,0.07);
+    bottom: 60px; right: 100px;
+    animation-delay: 4s;
   }
 
-  @keyframes orb-pulse {
-    0%, 100% { transform: scale(1); opacity: 0.7; }
-    50% { transform: scale(1.2); opacity: 1; }
+  @keyframes orb-float {
+    0%,100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-20px) scale(1.08); }
   }
 
   .badge {
     display: inline-block;
-    font-size: 0.7rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
     letter-spacing: 0.25em;
     text-transform: uppercase;
-    color: var(--purple-bright);
-    border: 1px solid rgba(168,85,247,0.4);
-    padding: 0.35rem 1rem;
-    border-radius: 2px;
-    margin-bottom: 2rem;
-    background: rgba(124,58,237,0.08);
-    backdrop-filter: blur(10px);
-    animation: fade-up 0.8s ease both;
+    color: var(--p2);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    margin-bottom: 28px;
+    background: rgba(139,92,246,0.06);
+    animation: fadeUp 1s ease both;
   }
 
   .hero-title {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(4rem, 12vw, 9rem);
-    font-weight: 800;
-    line-height: 0.95;
-    letter-spacing: -0.03em;
-    animation: fade-up 0.8s ease 0.1s both;
-    position: relative;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(72px, 14vw, 160px);
+    font-weight: 900;
+    line-height: 0.88;
+    letter-spacing: -0.02em;
+    margin-bottom: 28px;
+    animation: fadeUp 1s ease 0.1s both;
   }
 
-  .hero-title .z {
+  .hero-title .letter-z {
     color: transparent;
-    -webkit-text-stroke: 2px var(--purple-bright);
-    text-shadow: 0 0 60px rgba(168,85,247,0.5);
+    -webkit-text-stroke: 2px var(--p2);
+    filter: drop-shadow(0 0 30px rgba(139,92,246,0.5));
   }
 
-  .hero-title .util {
-    background: linear-gradient(135deg, var(--purple-bright) 0%, var(--purple-ultra) 50%, var(--accent) 100%);
+  .hero-title .letter-rest {
+    background: linear-gradient(160deg, var(--p4) 0%, var(--p2) 60%, var(--p1) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: none;
   }
 
   .hero-sub {
-    margin-top: 1.5rem;
-    font-size: 0.95rem;
+    font-size: 13px;
     color: var(--muted);
-    letter-spacing: 0.05em;
-    max-width: 440px;
-    line-height: 1.7;
-    animation: fade-up 0.8s ease 0.2s both;
+    letter-spacing: 0.04em;
+    max-width: 400px;
+    line-height: 1.8;
+    margin-bottom: 36px;
+    animation: fadeUp 1s ease 0.2s both;
   }
 
-  .hero-sub strong {
-    color: var(--purple-glow);
-    font-weight: 400;
-  }
+  .hero-sub strong { color: var(--p3); font-weight: 400; }
 
   .hero-tags {
     display: flex;
-    gap: 0.75rem;
-    margin-top: 2.5rem;
+    gap: 8px;
     flex-wrap: wrap;
-    justify-content: center;
-    animation: fade-up 0.8s ease 0.3s both;
+    margin-bottom: 36px;
+    animation: fadeUp 1s ease 0.3s both;
   }
 
   .tag {
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
+    font-size: 9px;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    padding: 0.4rem 0.9rem;
-    background: rgba(124,58,237,0.12);
-    border: 1px solid rgba(168,85,247,0.2);
-    border-radius: 2px;
-    color: var(--purple-glow);
+    padding: 5px 12px;
+    background: rgba(139,92,246,0.08);
+    border: 1px solid var(--border);
+    color: var(--p2);
+    font-family: 'Space Mono', monospace;
   }
 
   .hero-actions {
     display: flex;
-    gap: 1rem;
-    margin-top: 2.5rem;
+    gap: 12px;
     flex-wrap: wrap;
-    justify-content: center;
-    animation: fade-up 0.8s ease 0.3s both;
+    animation: fadeUp 1s ease 0.35s both;
   }
 
-  .btn-download {
+  .btn-primary {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 8px;
     font-family: 'Space Mono', monospace;
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     text-decoration: none;
-    padding: 0.85rem 2rem;
-    background: linear-gradient(135deg, var(--purple) 0%, var(--purple-bright) 100%);
+    padding: 12px 28px;
+    background: linear-gradient(135deg, var(--p1), var(--p2));
     color: #fff;
     border: none;
-    border-radius: 2px;
     cursor: pointer;
     position: relative;
     overflow: hidden;
     transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 0 30px rgba(124,58,237,0.4);
+    box-shadow: 0 0 28px rgba(139,92,246,0.35);
   }
 
-  .btn-download::before {
+  .btn-primary::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, var(--purple-bright) 0%, var(--purple-ultra) 100%);
+    background: linear-gradient(135deg, var(--p2), var(--p3));
     opacity: 0;
     transition: opacity 0.3s;
   }
 
-  .btn-download:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 50px rgba(168,85,247,0.6);
-  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 44px rgba(139,92,246,0.55); }
+  .btn-primary:hover::after { opacity: 1; }
+  .btn-primary span, .btn-primary svg { position: relative; z-index: 1; }
 
-  .btn-download:hover::before { opacity: 1; }
-
-  .btn-download span { position: relative; z-index: 1; }
-
-  .btn-download svg { position: relative; z-index: 1; flex-shrink: 0; }
-
-  .btn-source {
+  .btn-ghost {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 8px;
     font-family: 'Space Mono', monospace;
-    font-size: 0.8rem;
-    letter-spacing: 0.12em;
+    font-size: 10px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     text-decoration: none;
-    padding: 0.85rem 2rem;
+    padding: 12px 28px;
+    border: 1px solid var(--border);
+    color: var(--p2);
     background: transparent;
-    color: var(--purple-bright);
-    border: 1px solid rgba(168,85,247,0.4);
-    border-radius: 2px;
     cursor: pointer;
     transition: border-color 0.2s, background 0.2s, transform 0.2s;
   }
 
-  .btn-source:hover {
-    border-color: var(--purple-bright);
-    background: rgba(168,85,247,0.08);
+  .btn-ghost:hover {
+    border-color: var(--p1);
+    background: rgba(139,92,246,0.08);
     transform: translateY(-2px);
   }
-    position: absolute;
-    bottom: 2.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--muted);
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    animation: fade-in 2s ease 1s both;
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
-  .scroll-line {
-    width: 1px;
-    height: 40px;
-    background: linear-gradient(to bottom, transparent, var(--purple-bright));
-    animation: scroll-pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes scroll-pulse {
-    0%, 100% { opacity: 0.3; transform: scaleY(0.7) translateY(0); }
-    50% { opacity: 1; transform: scaleY(1) translateY(5px); }
-  }
-
-  @keyframes fade-up {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  /* ---- SECTION ---- */
-  section {
+  /* ---- SECTIONS ---- */
+  .section-wrap {
     position: relative;
-    z-index: 1;
+    z-index: 10;
     max-width: 1100px;
     margin: 0 auto;
-    padding: 6rem 2rem;
+    padding: 7rem 2rem;
   }
 
-  .section-label {
-    font-size: 0.65rem;
+  .section-eyebrow {
+    font-size: 9px;
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: var(--purple-bright);
-    margin-bottom: 1rem;
+    color: var(--p1);
+    margin-bottom: 14px;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 12px;
+    font-family: 'Space Mono', monospace;
   }
 
-  .section-label::before {
+  .section-eyebrow::before {
     content: '';
     display: block;
-    width: 30px;
+    width: 28px;
     height: 1px;
-    background: var(--purple);
+    background: linear-gradient(90deg, var(--p1), transparent);
   }
 
   .section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 700;
-    line-height: 1.1;
-    margin-bottom: 3rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.0;
+    margin-bottom: 3.5rem;
     color: var(--text);
+    letter-spacing: -0.01em;
   }
 
   .section-title em {
-    font-style: normal;
-    background: linear-gradient(135deg, var(--purple-bright), var(--purple-ultra));
+    font-style: italic;
+    background: linear-gradient(135deg, var(--p2), var(--p3));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* ---- MODULES GRID ---- */
+  /* ---- STATS ---- */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 5rem;
+  }
+
+  .stat {
+    background: var(--surface);
+    padding: 2rem 1.75rem;
+    text-align: center;
+    transition: background 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--p1), transparent);
+    transform: scaleX(0);
+    transition: transform 0.4s;
+  }
+
+  .stat:hover { background: var(--deep); }
+  .stat:hover::before { transform: scaleX(1); }
+
+  .stat-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--p2), var(--p3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 6px;
+    display: block;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ---- MODULES ---- */
   .modules-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.5px;
+    gap: 1px;
     background: var(--border);
-    border: 1.5px solid var(--border);
+    border: 1px solid var(--border);
   }
 
   .module-card {
@@ -356,190 +486,190 @@
     cursor: default;
   }
 
-  .module-card::before {
+  .module-card::after {
     content: '';
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--purple), transparent);
+    background: linear-gradient(90deg, transparent, var(--p1), transparent);
     transform: scaleX(0);
-    transition: transform 0.4s ease;
+    transition: transform 0.4s;
   }
 
-  .module-card:hover::before {
-    transform: scaleX(1);
-  }
-
-  .module-card:hover {
-    background: var(--deep);
-  }
-
-  .module-card:hover .module-glow {
-    opacity: 1;
-  }
+  .module-card:hover { background: var(--deep); }
+  .module-card:hover::after { transform: scaleX(1); }
 
   .module-glow {
     position: absolute;
-    top: -40px; right: -40px;
-    width: 120px; height: 120px;
-    background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);
+    top: -50px; right: -50px;
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(139,92,246,0.13) 0%, transparent 70%);
     border-radius: 50%;
     opacity: 0;
     transition: opacity 0.4s;
     pointer-events: none;
   }
+  .module-card:hover .module-glow { opacity: 1; }
 
   .module-icon {
     width: 40px; height: 40px;
-    border: 1px solid rgba(168,85,247,0.3);
-    border-radius: 4px;
+    border: 1px solid var(--border);
     display: flex; align-items: center; justify-content: center;
     margin-bottom: 1.25rem;
     font-size: 1.1rem;
-    background: rgba(124,58,237,0.08);
+    background: rgba(139,92,246,0.06);
     flex-shrink: 0;
+    transition: border-color 0.3s;
   }
+  .module-card:hover .module-icon { border-color: rgba(139,92,246,0.4); }
 
   .module-name {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.1rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.15rem;
     font-weight: 700;
     color: var(--text);
-    margin-bottom: 0.5rem;
+    margin-bottom: 8px;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.06em;
   }
 
   .module-desc {
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--muted);
-    line-height: 1.7;
+    line-height: 1.75;
   }
 
   .module-type {
     margin-top: 1.25rem;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
+    font-size: 9px;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--purple-bright);
-    opacity: 0.7;
-    display: flex; align-items: center; gap: 0.4rem;
+    color: var(--p1);
+    opacity: 0.8;
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'Space Mono', monospace;
   }
 
   .module-type::before {
     content: '';
     width: 5px; height: 5px;
-    background: var(--purple-bright);
+    background: var(--p1);
     border-radius: 50%;
     display: block;
+    box-shadow: 0 0 5px var(--p1);
   }
-
-  /* ---- ARCH SECTION ---- */
-  .arch-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px;
-    background: var(--border);
-    border: 1.5px solid var(--border);
-    margin-bottom: 2px;
-  }
-
-  .arch-item {
-    background: var(--surface);
-    padding: 1.75rem 2rem;
-  }
-
-  .arch-path {
-    font-size: 0.7rem;
-    color: var(--purple-bright);
-    opacity: 0.8;
-    margin-bottom: 0.4rem;
-    font-family: 'Space Mono', monospace;
-  }
-
-  .arch-name {
-    font-family: 'Syne', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 0.4rem;
-  }
-
-  .arch-desc {
-    font-size: 0.78rem;
-    color: var(--muted);
-    line-height: 1.6;
-  }
-
-  /* ---- CODE BLOCK ---- */
-  .code-block {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    padding: 2rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .code-block::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: linear-gradient(to bottom, var(--purple), var(--purple-ultra));
-  }
-
-  .code-header {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 1.25rem;
-    display: flex; align-items: center; gap: 0.75rem;
-  }
-
-  .code-dots {
-    display: flex; gap: 5px;
-  }
-
-  .code-dots span {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--border);
-  }
-
-  .code-dots span:nth-child(1) { background: rgba(168,85,247,0.5); }
-  .code-dots span:nth-child(2) { background: rgba(168,85,247,0.3); }
-  .code-dots span:nth-child(3) { background: rgba(168,85,247,0.15); }
-
-  pre {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.8rem;
-    line-height: 1.9;
-    color: var(--muted);
-    white-space: pre-wrap;
-    word-break: break-word;
-  }
-
-  .kw { color: var(--purple-bright); }
-  .fn { color: var(--purple-glow); }
-  .str { color: var(--accent); }
-  .cm { color: rgba(124,99,160,0.7); font-style: italic; }
-  .num { color: rgba(168,85,247,0.9); }
-  .type { color: var(--purple-ultra); }
 
   /* ---- DIVIDER ---- */
   .divider {
     border: none;
     height: 1px;
     background: linear-gradient(90deg, transparent, var(--border), transparent);
-    margin: 0;
+    position: relative;
+    z-index: 10;
   }
+
+  /* ---- ARCH ---- */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-bottom: 1px;
+  }
+
+  .arch-item {
+    background: var(--surface);
+    padding: 1.75rem 2rem;
+    transition: background 0.25s;
+  }
+
+  .arch-item:hover { background: var(--deep); }
+
+  .arch-path {
+    font-size: 10px;
+    color: var(--p2);
+    opacity: 0.8;
+    margin-bottom: 6px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .arch-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .arch-desc {
+    font-size: 0.77rem;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* ---- CODE ---- */
+  .code-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    margin-top: 1px;
+  }
+
+  .code-block::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 2px; height: 100%;
+    background: linear-gradient(to bottom, var(--p1), var(--p3));
+  }
+
+  .code-header {
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .code-dots { display: flex; gap: 5px; }
+  .code-dots span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+  }
+  .code-dots span:nth-child(1) { background: rgba(139,92,246,0.55); }
+  .code-dots span:nth-child(2) { background: rgba(139,92,246,0.3); }
+  .code-dots span:nth-child(3) { background: rgba(139,92,246,0.15); }
+
+  pre {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.79rem;
+    line-height: 1.9;
+    color: var(--muted);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .kw  { color: var(--p2); }
+  .fn  { color: var(--p3); }
+  .str { color: rgba(230, 210, 255, 0.85); }
+  .cm  { color: rgba(130,100,180,0.65); font-style: italic; }
+  .num { color: var(--p2); opacity: 0.85; }
+  .type{ color: var(--p3); opacity: 0.9; }
 
   /* ---- FOOTER ---- */
   footer {
-    border-top: 1px solid var(--border);
-    padding: 3rem 2rem;
-    text-align: center;
     position: relative;
+    z-index: 10;
+    border-top: 1px solid var(--border);
+    padding: 3.5rem 2rem;
+    text-align: center;
     overflow: hidden;
   }
 
@@ -548,156 +678,107 @@
     position: absolute;
     bottom: 0; left: 50%;
     transform: translateX(-50%);
-    width: 300px; height: 100px;
-    background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%);
+    width: 400px; height: 120px;
+    background: radial-gradient(ellipse, rgba(109,40,217,0.1) 0%, transparent 70%);
     pointer-events: none;
   }
 
   .footer-logo {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 800;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
     color: transparent;
-    -webkit-text-stroke: 1px rgba(168,85,247,0.5);
-    margin-bottom: 0.75rem;
+    -webkit-text-stroke: 1px rgba(139,92,246,0.45);
+    margin-bottom: 1rem;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(139,92,246,0.2));
   }
 
   .footer-text {
-    font-size: 0.75rem;
+    font-size: 11px;
     color: var(--muted);
-    letter-spacing: 0.05em;
-    line-height: 1.8;
+    letter-spacing: 0.06em;
+    line-height: 1.9;
+    font-family: 'Space Mono', monospace;
   }
 
   .footer-text a {
-    color: var(--purple-bright);
+    color: var(--p2);
     text-decoration: none;
-    border-bottom: 1px solid rgba(168,85,247,0.3);
-    transition: border-color 0.2s;
+    border-bottom: 1px solid var(--border);
+    transition: border-color 0.2s, color 0.2s;
   }
 
   .footer-text a:hover {
-    border-color: var(--purple-bright);
+    border-color: var(--p2);
+    color: var(--p3);
   }
 
-  /* ---- STATS BAR ---- */
-  .stats-bar {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 2px;
-    background: var(--border);
-    border: 1.5px solid var(--border);
-    margin-bottom: 5rem;
+  /* ---- REVEAL ---- */
+  .reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
   }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
 
-  .stat {
-    background: var(--surface);
-    padding: 1.75rem 2rem;
-    text-align: center;
-  }
-
-  .stat-num {
-    font-family: 'Syne', sans-serif;
-    font-size: 2.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--purple-bright), var(--purple-ultra));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: block;
-    line-height: 1;
-  }
-
-  .stat-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-top: 0.5rem;
-    display: block;
-  }
-
-  /* ---- REQUIRE BOX ---- */
-  .require-box {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    padding: 2rem 2.5rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .require-box::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 150px; height: 150px;
-    background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .require-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 1rem;
-    display: flex; align-items: center; gap: 0.75rem;
-  }
-
-  .require-title::before {
-    content: '!';
-    display: flex; align-items: center; justify-content: center;
-    width: 24px; height: 24px;
-    background: rgba(168,85,247,0.2);
-    border: 1px solid var(--purple-bright);
-    border-radius: 50%;
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--purple-bright);
-    flex-shrink: 0;
-  }
-
-  .require-list {
-    list-style: none;
-    display: flex; flex-direction: column; gap: 0.75rem;
-  }
-
-  .require-list li {
-    font-size: 0.85rem;
-    color: var(--muted);
-    display: flex; align-items: flex-start; gap: 0.75rem;
-    line-height: 1.6;
-  }
-
-  .require-list li::before {
-    content: '›';
-    color: var(--purple-bright);
-    font-size: 1.1rem;
-    line-height: 1.3;
-    flex-shrink: 0;
-  }
-
-  .highlight { color: var(--purple-glow); }
-
-  /* responsive */
+  /* ---- RESPONSIVE ---- */
   @media (max-width: 640px) {
     .arch-grid { grid-template-columns: 1fr; }
+    #hero { padding: 100px 28px 60px; }
+    .nav-links { display: none; }
+    .side-label { display: none; }
   }
 </style>
 </head>
 <body>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-bg"></div>
-  <div class="grid-bg"></div>
-  <div class="glow-orb glow-orb-1"></div>
-  <div class="glow-orb glow-orb-2"></div>
+<!-- CANVAS PARTICLES -->
+<canvas id="canvas"></canvas>
 
-  <div class="badge">// Утилита для Minecraft 1.1.5</div>
+<!-- SIDE LABELS -->
+<span class="side-label side-left">ZUTIL // Minecraft</span>
+<span class="side-label side-ver">VER 1.0.0</span>
+
+<!-- SCROLL DOTS -->
+<div class="scroll-dots">
+  <div class="dot active" data-idx="0"></div>
+  <div class="dot" data-idx="1"></div>
+  <div class="dot" data-idx="2"></div>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <span class="nav-logo">ZUTIL</span>
+
+  <ul class="nav-links">
+    <li><a href="#hero" class="active">Главная</a></li>
+    <li><a href="#modules">Модули</a></li>
+    <li><a href="#arch">Архитектура</a></li>
+  </ul>
+
+  <div class="nav-right">
+    <a class="btn-nav btn-nav-filled" href="https://t.me/zovutil" target="_blank">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Скачать
+    </a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <div class="hero-glow hero-glow-1"></div>
+  <div class="hero-glow hero-glow-2"></div>
+
+  <div class="badge">// Утилита для Minecraft MCPE 1.1.5</div>
 
   <h1 class="hero-title">
-    <span class="z">Z</span><span class="util">UTIL</span>
+    <span class="letter-z">Z</span><span class="letter-rest">UTIL</span>
   </h1>
 
   <p class="hero-sub">
@@ -713,198 +794,289 @@
   </div>
 
   <div class="hero-actions">
-    <a class="btn-download" href="https://t.me/zovutil" target="_blank">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <a class="btn-primary" href="https://t.me/zovutil" target="_blank">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
         <polyline points="7 10 12 15 17 10"/>
         <line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
       <span>Скачать</span>
     </a>
+    <a class="btn-ghost" href="#modules" onclick="event.preventDefault();const el=document.getElementById('modules');window.scrollTo({top:el.offsetTop-60,behavior:'smooth'})">Смотреть модули</a>
   </div>
+</section>
 
+<!-- ============ STATS + MODULES ============ -->
+<section id="modules">
+  <div class="section-wrap">
 
-</div>
-
-<!-- STATS -->
-<section>
-  <div class="stats-bar">
-    <div class="stat">
-      <span class="stat-num">5</span>
-      <span class="stat-label">Модулей</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num">Go</span>
-      <span class="stat-label">Язык</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num">1.1.5</span>
-      <span class="stat-label">Цель MCPE</span>
-    </div>
-    <div class="stat">
-      <span class="stat-num">Win</span>
-      <span class="stat-label">Платформа</span>
-    </div>
-  </div>
-
-  <!-- MODULES -->
-  <div class="section-label">Модули</div>
-  <h2 class="section-title">Что умеет <em>zutil</em></h2>
-
-  <div class="modules-grid">
-
-    <div class="module-card">
-      <div class="module-glow"></div>
-      <div class="module-icon">⚡</div>
-      <div class="module-name">Авто-спринт</div>
-      <div class="module-desc">Патчит байтовую последовательность в памяти — заменяет оригинальные байты на патч-байты, которые всегда возвращают 1 в месте проверки зажатия кнопки спринта.</div>
-      <div class="module-type">byte toggle</div>
+    <div class="stats-bar reveal">
+      <div class="stat">
+        <span class="stat-num">5</span>
+        <span class="stat-label">Модулей</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">Go</span>
+        <span class="stat-label">Язык</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">1.1.5</span>
+        <span class="stat-label">Цель MCPE</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">Win</span>
+        <span class="stat-label">Платформа</span>
+      </div>
     </div>
 
-    <div class="module-card">
-      <div class="module-glow"></div>
-      <div class="module-icon">🎮</div>
-      <div class="module-name">Чувствительность контроллера</div>
-      <div class="module-desc">Позволяет выставить чувствительность контроллера выше 100 — далеко за пределы внутриигрового ограничения. Использует цепочку указателей.</div>
-      <div class="module-type">float pointer</div>
-    </div>
+    <div class="section-eyebrow">Модули</div>
+    <h2 class="section-title">Что умеет <em>zutil</em></h2>
 
-    <div class="module-card">
-      <div class="module-glow"></div>
-      <div class="module-icon">🛡️</div>
-      <div class="module-name">Без тряски камеры</div>
-      <div class="module-desc">Отключает тряску камеры при получении урона. Заменяет сигнатуру в памяти игры на NOP — анимация больше не воспроизводится.</div>
-      <div class="module-type">nop sig toggle</div>
-    </div>
+    <div class="modules-grid">
 
-    <div class="module-card">
-      <div class="module-glow"></div>
-      <div class="module-icon">✨</div>
-      <div class="module-name">Без частиц</div>
-      <div class="module-desc">Полностью отключает рендеринг частиц в игре. Заменяет нужную сигнатуру на NOP — полезно для оптимизации или чистой картинки в соревновательной игре.</div>
-      <div class="module-type">nop sig toggle</div>
-    </div>
+      <div class="module-card reveal">
+        <div class="module-glow"></div>
+        <div class="module-icon">⚡</div>
+        <div class="module-name">Авто-спринт</div>
+        <div class="module-desc">Патчит байтовую последовательность в памяти — заменяет оригинальные байты на патч-байты, которые всегда возвращают 1 в месте проверки зажатия кнопки спринта.</div>
+        <div class="module-type">byte toggle</div>
+      </div>
 
-    <div class="module-card">
-      <div class="module-glow"></div>
-      <div class="module-icon">👁️</div>
-      <div class="module-name">Статичный FOV</div>
-      <div class="module-desc">Заменяет сигнатуру на NOP, заставляя игру считать угол обзора статичным. FOV не меняется при спринте или получении урона — картинка всегда стабильна.</div>
-      <div class="module-type">nop sig toggle</div>
-    </div>
+      <div class="module-card reveal">
+        <div class="module-glow"></div>
+        <div class="module-icon">🎮</div>
+        <div class="module-name">Чувствительность</div>
+        <div class="module-desc">Позволяет выставить чувствительность контроллера выше 100 — далеко за пределы внутриигрового ограничения. Использует цепочку указателей.</div>
+        <div class="module-type">float pointer</div>
+      </div>
 
+      <div class="module-card reveal">
+        <div class="module-glow"></div>
+        <div class="module-icon">🛡️</div>
+        <div class="module-name">Без тряски камеры</div>
+        <div class="module-desc">Отключает тряску камеры при получении урона. Заменяет сигнатуру в памяти игры на NOP — анимация больше не воспроизводится.</div>
+        <div class="module-type">nop sig toggle</div>
+      </div>
+
+      <div class="module-card reveal">
+        <div class="module-glow"></div>
+        <div class="module-icon">✨</div>
+        <div class="module-name">Без частиц</div>
+        <div class="module-desc">Полностью отключает рендеринг частиц в игре. Заменяет нужную сигнатуру на NOP — полезно для оптимизации или чистой картинки в соревновательной игре.</div>
+        <div class="module-type">nop sig toggle</div>
+      </div>
+
+      <div class="module-card reveal">
+        <div class="module-glow"></div>
+        <div class="module-icon">👁️</div>
+        <div class="module-name">Статичный FOV</div>
+        <div class="module-desc">Заменяет сигнатуру на NOP, заставляя игру считать угол обзора статичным. FOV не меняется при спринте или получении урона — картинка всегда стабильна.</div>
+        <div class="module-type">nop sig toggle</div>
+      </div>
+
+    </div>
   </div>
 </section>
 
 <hr class="divider">
 
-<!-- ARCHITECTURE -->
-<section>
-  <div class="section-label">Архитектура</div>
-  <h2 class="section-title">Структура <em>проекта</em></h2>
+<!-- ============ ARCHITECTURE ============ -->
+<section id="arch">
+  <div class="section-wrap">
+    <div class="section-eyebrow">Архитектура</div>
+    <h2 class="section-title">Структура <em>проекта</em></h2>
 
-  <div class="arch-grid">
-    <div class="arch-item">
-      <div class="arch-path">main.go</div>
-      <div class="arch-name">Точка входа</div>
-      <div class="arch-desc">Запускает приложение, настраивает обработку сигналов ОС, нацеливается на Minecraft.Windows.exe и показывает robotgo-алерт при панике.</div>
-    </div>
-    <div class="arch-item">
-      <div class="arch-path">app/</div>
-      <div class="arch-name">Ядро приложения</div>
-      <div class="arch-desc">Управляет жизненным циклом окна Fyne (400×250, фиксированный), инициализацией модулей, отслеживанием процесса и корректным завершением.</div>
-    </div>
-    <div class="arch-item">
-      <div class="arch-path">app/module/</div>
-      <div class="arch-name">Интерфейс модуля</div>
-      <div class="arch-desc">Определяет интерфейс Module: Name(), Description(), CreateObjects() и Disable(). Модуль управляется через виджеты из CreateObjects() — у каждого модуля они свои (чекбокс, слайдер и т.д.). Disable() вызывается принудительно при закрытии приложения.</div>
-    </div>
-    <div class="arch-item">
-      <div class="arch-path">app/module/modules/</div>
-      <div class="arch-name">Реализации модулей</div>
-      <div class="arch-desc">Конкретные модули на базе трёх утилит: ByteToggle, SigToggle и FloatPointer — каждый со своей стратегией патчинга памяти.</div>
-    </div>
-    <div class="arch-item">
-      <div class="arch-path">internal/pkg/win/</div>
-      <div class="arch-name">Слой памяти Win</div>
-      <div class="arch-desc">Обёртки над Windows API низкого уровня: поиск процесса, чтение/запись памяти, переключение байт/сигнатур, отслеживание жизненного цикла.</div>
-    </div>
-    <div class="arch-item">
-      <div class="arch-path">internal/pkg/fyneutil/</div>
-      <div class="arch-name">Хелперы UI</div>
-      <div class="arch-desc">Кастомные утилиты Fyne: связанный виджет слайдер+ввод и вспомогательные функции позиционирования окна для компактного GUI.</div>
-    </div>
-  </div>
-
-  <!-- Code sample -->
-  <div style="margin-top:2px;">
-    <div class="code-block">
-      <div class="code-header">
-        <div class="code-dots"><span></span><span></span><span></span></div>
-        app/module/modules/auto_sprint.go
+    <div class="arch-grid">
+      <div class="arch-item reveal">
+        <div class="arch-path">main.go</div>
+        <div class="arch-name">Точка входа</div>
+        <div class="arch-desc">Запускает приложение, настраивает обработку сигналов ОС, нацеливается на Minecraft.Windows.exe и показывает robotgo-алерт при панике.</div>
       </div>
-<pre><span class="cm">// autoSprint встраивает ByteToggleModule через embedding.
-// Все методы (CreateObjects, Disable) наследуются от него автоматически.</span>
-<span class="kw">type</span> <span class="type">autoSprint</span> <span class="kw">struct</span> {
-  *<span class="type">modulesutil.ByteToggleModule</span>
-}
-
-<span class="cm">// autoSprint реализует только Name() и Description() — остальное от ByteToggleModule</span>
-<span class="kw">func</span> (<span class="fn">*autoSprint</span>) <span class="fn">Name()</span> <span class="type">string</span>        { <span class="kw">return</span> <span class="str">"auto sprint"</span> }
-<span class="kw">func</span> (<span class="fn">*autoSprint</span>) <span class="fn">Description()</span> <span class="type">string</span> { <span class="kw">return</span> <span class="str">"automatically sprints for you"</span> }
-
-<span class="cm">// ByteToggleModule.CreateObjects() — создаёт чекбокс, по которому
-// оригинальные байты заменяются патч-байтами в памяти процесса</span>
-<span class="kw">func</span> (<span class="fn">m *ByteToggleModule</span>) <span class="fn">CreateObjects()</span> []<span class="type">fyne.CanvasObject</span> {
-  check := widget.<span class="fn">NewCheck</span>(<span class="str">"disabled"</span>, <span class="kw">nil</span>)
-  check.OnChanged = m.<span class="fn">set</span>(check)
-  <span class="kw">return</span> []<span class="type">fyne.CanvasObject</span>{check}
-}
-
-<span class="cm">// ByteToggleModule.Disable() — вызывается при закрытии приложения,
-// восстанавливает оригинальные байты в памяти</span>
-<span class="kw">func</span> (<span class="fn">m *ByteToggleModule</span>) <span class="fn">Disable()</span> {
-  _ = m.toggler.<span class="fn">Set</span>(<span class="kw">false</span>)
-}
-
-<span class="cm">// Байтовые последовательности для патчинга</span>
-<span class="kw">var</span> (
-  autoSprintSig   = []<span class="type">byte</span>{<span class="num">0x0F</span>, <span class="num">0xB6</span>, <span class="num">0x41</span>, <span class="num">0x63</span>, <span class="num">0x40</span>, <span class="num">0x32</span>, <span class="num">0xED</span>}
-  autoSprintPatch = []<span class="type">byte</span>{<span class="num">0x66</span>, <span class="num">0xB8</span>, <span class="num">0x01</span>, <span class="num">0x00</span>, <span class="num">0x40</span>, <span class="num">0x30</span>, <span class="num">0xED</span>}
-)</pre>
+      <div class="arch-item reveal">
+        <div class="arch-path">app/</div>
+        <div class="arch-name">Ядро приложения</div>
+        <div class="arch-desc">Управляет жизненным циклом окна Fyne (400×250, фиксированный), инициализацией модулей, отслеживанием процесса и корректным завершением.</div>
+      </div>
+      <div class="arch-item reveal">
+        <div class="arch-path">app/module/</div>
+        <div class="arch-name">Интерфейс модуля</div>
+        <div class="arch-desc">Определяет интерфейс Module: Name(), Description(), CreateObjects() и Disable(). Каждый модуль управляется через виджеты — чекбокс, слайдер и т.д.</div>
+      </div>
+      <div class="arch-item reveal">
+        <div class="arch-path">app/module/modules/</div>
+        <div class="arch-name">Реализации модулей</div>
+        <div class="arch-desc">Конкретные модули на базе трёх утилит: ByteToggle, SigToggle и FloatPointer — каждый со своей стратегией патчинга памяти.</div>
+      </div>
+      <div class="arch-item reveal">
+        <div class="arch-path">internal/pkg/win/</div>
+        <div class="arch-name">Слой памяти Win</div>
+        <div class="arch-desc">Обёртки над Windows API низкого уровня: поиск процесса, чтение/запись памяти, переключение байт/сигнатур, отслеживание жизненного цикла.</div>
+      </div>
+      <div class="arch-item reveal">
+        <div class="arch-path">internal/pkg/fyneutil/</div>
+        <div class="arch-name">Хелперы UI</div>
+        <div class="arch-desc">Кастомные утилиты Fyne: связанный виджет слайдер+ввод и вспомогательные функции позиционирования окна для компактного GUI.</div>
+      </div>
     </div>
+
+
   </div>
 </section>
 
-
-
-<!-- FOOTER -->
+<!-- ============ FOOTER ============ -->
 <footer>
-  <div class="footer-logo">ZUTIL</div>
+  <span class="footer-logo">ZUTIL</span>
   <div class="footer-text">
-    Утилита с открытым исходным кодом на Go · Для Minecraft Bedrock v1.1.5<br>
+    Утилита на Go · Для Minecraft Bedrock v1.1.5<br>
     Использует <a href="#">Fyne</a> для GUI · <a href="#">robotgo</a> для алертов · Win32 для памяти
   </div>
 </footer>
 
 <script>
-  // Reveal on scroll
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.style.opacity = '1';
-        e.target.style.transform = 'translateY(0)';
+// ======== CANVAS — PURPLE GEOMETRIC PARTICLES ========
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let W, H, shapes = [];
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); initShapes(); });
+
+class Shape {
+  constructor(init) {
+    this.reset(init);
+  }
+  reset(init) {
+    this.x = Math.random() * W;
+    this.y = init ? Math.random() * H : H + 40;
+    this.size = 10 + Math.random() * 24;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.006;
+    this.vx = (Math.random() - 0.5) * 0.25;
+    this.vy = -0.12 - Math.random() * 0.2;
+    // purple palette with subtle variation
+    const hue = 260 + Math.floor(Math.random() * 40);
+    const alpha = 0.07 + Math.random() * 0.18;
+    this.color = `hsla(${hue}, 70%, 70%, ${alpha})`;
+    this.type = Math.random() > 0.45 ? 'tri' : 'hex';
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    if (this.type === 'tri') {
+      const s = this.size;
+      ctx.moveTo(0, -s);
+      ctx.lineTo(s * 0.866, s * 0.5);
+      ctx.lineTo(-s * 0.866, s * 0.5);
+      ctx.closePath();
+    } else {
+      // small inner+outer triangles (Star of David)
+      const s = this.size;
+      ctx.moveTo(0, -s); ctx.lineTo(s*0.866, s*0.5); ctx.lineTo(-s*0.866, s*0.5); ctx.closePath();
+      ctx.moveTo(0, s);  ctx.lineTo(s*0.866, -s*0.5); ctx.lineTo(-s*0.866, -s*0.5); ctx.closePath();
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.rotation += this.rotSpeed;
+    if (this.y < -60 || this.x < -80 || this.x > W + 80) this.reset(false);
+  }
+}
+
+function drawLines() {
+  for (let i = 0; i < shapes.length; i++) {
+    for (let j = i + 1; j < shapes.length; j++) {
+      const dx = shapes[i].x - shapes[j].x;
+      const dy = shapes[i].y - shapes[j].y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if (d < 160) {
+        const a = (1 - d / 160) * 0.06;
+        ctx.strokeStyle = `rgba(139, 92, 246, ${a})`;
+        ctx.lineWidth = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(shapes[i].x, shapes[i].y);
+        ctx.lineTo(shapes[j].x, shapes[j].y);
+        ctx.stroke();
       }
-    });
-  }, { threshold: 0.1 });
+    }
+  }
+}
 
-  document.querySelectorAll('.module-card, .arch-item, .stat, .require-box, .code-block').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(el);
+function initShapes() {
+  shapes = [];
+  const n = Math.floor((W * H) / 15000);
+  for (let i = 0; i < n; i++) shapes.push(new Shape(true));
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  drawLines();
+  shapes.forEach(s => { s.update(); s.draw(); });
+  requestAnimationFrame(animate);
+}
+
+initShapes();
+animate();
+
+// ======== SCROLL DOTS ========
+const dots = document.querySelectorAll('.dot');
+const sectionEls = [
+  document.getElementById('hero'),
+  document.getElementById('modules'),
+  document.getElementById('arch')
+];
+
+function updateDots() {
+  const mid = window.scrollY + window.innerHeight * 0.4;
+  sectionEls.forEach((sec, i) => {
+    if (!sec) return;
+    if (mid >= sec.offsetTop && mid < sec.offsetTop + sec.offsetHeight) {
+      dots.forEach(d => d.classList.remove('active'));
+      dots[i]?.classList.add('active');
+    }
   });
-</script>
+}
 
+dots.forEach((dot, i) => {
+  dot.addEventListener('click', () => sectionEls[i]?.scrollIntoView({ behavior: 'smooth' }));
+});
+
+window.addEventListener('scroll', updateDots);
+
+// ======== NAV ACTIVE ========
+const navLinks = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  const y = window.scrollY + 120;
+  sectionEls.forEach((sec, i) => {
+    if (!sec) return;
+    if (y >= sec.offsetTop && y < sec.offsetTop + sec.offsetHeight) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      navLinks[i]?.classList.add('active');
+    }
+  });
+  updateDots();
+});
+
+// ======== REVEAL ========
+const reveals = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry, idx) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), idx * 70);
+    }
+  });
+}, { threshold: 0.12 });
+reveals.forEach(el => revealObserver.observe(el));
+</script>
 </body>
 </html>
