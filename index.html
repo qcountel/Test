@@ -31,6 +31,34 @@
     font-family: 'Space Mono', monospace;
     overflow-x: hidden;
     min-height: 100vh;
+    cursor: none;
+  }
+
+  /* ---- CUSTOM CURSOR ---- */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--p1);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.15s ease;
+    box-shadow: 0 0 20px rgba(139,92,246,0.8), 0 0 40px rgba(139,92,246,0.4);
+    transform: translate(-50%, -50%);
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(139,92,246,0.4);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: all 0.3s ease;
+    transform: translate(-50%, -50%);
+  }
+
+  a, button, .dot, .module-card, .stat, .arch-item, .btn-primary, .btn-ghost, .btn-nav {
+    cursor: none;
   }
 
   /* ---- CANVAS ---- */
@@ -734,6 +762,10 @@
 </head>
 <body>
 
+<!-- CUSTOM CURSOR -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
 <!-- CANVAS PARTICLES -->
 <canvas id="canvas"></canvas>
 
@@ -812,7 +844,7 @@
 
     <div class="stats-bar reveal">
       <div class="stat">
-        <span class="stat-num">5</span>
+        <span class="stat-num">7</span>
         <span class="stat-label">Модулей</span>
       </div>
       <div class="stat">
@@ -872,6 +904,22 @@
         <div class="module-name">Статичный FOV</div>
         <div class="module-desc">Заменяет сигнатуру на NOP, заставляя игру считать угол обзора статичным. FOV не меняется при спринте или получении урона — картинка всегда стабильна.</div>
         <div class="module-type">nop sig toggle</div>
+      </div>
+
+      <div class="module-card reveal">
+        <div class="module-glow"></div>
+        <div class="module-icon">🔥</div>
+        <div class="module-name">No Fire</div>
+        <div class="module-desc">Предотвращает обновление флага onFire — NOP-патчит запись в память и принудительно выставляет false. Огонь на экране больше не появляется при горении.</div>
+        <div class="module-type">byte patch</div>
+      </div>
+
+      <div class="module-card reveal">
+        <div class="module-glow"></div>
+        <div class="module-icon">🔭</div>
+        <div class="module-name">Zoom</div>
+        <div class="module-desc">Зум при удержании назначенной клавиши — изменяет разрешение через WinAPI без вмешательства в память игры. Настраиваемый биндинг клавиши прямо в интерфейсе.</div>
+        <div class="module-type">fov hack</div>
       </div>
 
     </div>
@@ -1028,7 +1076,39 @@ function animate() {
 initShapes();
 animate();
 
-// ======== SCROLL DOTS ========
+// ======== CUSTOM CURSOR ========
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+
+(function animateRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(animateRing);
+})();
+
+document.querySelectorAll('a, button, .dot, .module-card, .stat, .arch-item').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.transform = 'translate(-50%, -50%) scale(2)';
+    ring.style.transform = 'translate(-50%, -50%) scale(1.5)';
+    ring.style.borderColor = 'rgba(139,92,246,0.8)';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+    ring.style.transform = 'translate(-50%, -50%) scale(1)';
+    ring.style.borderColor = 'rgba(139,92,246,0.4)';
+  });
+});
+
+
 const dots = document.querySelectorAll('.dot');
 const sectionEls = [
   document.getElementById('hero'),
